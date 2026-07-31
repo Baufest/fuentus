@@ -1,5 +1,5 @@
 // Utilidades para transformar datos de cobertura para charts
-import { DashboardDataRow, getCoverageData, getCoverageStats } from '../data/dashboardData';
+import { DashboardDataRow, getCoverageData, getCoverageStats, parseCoveragePercentage } from '../data/dashboardData';
 
 export interface CoverageChartData {
   labels: string[];
@@ -223,7 +223,7 @@ export const getCoverageTrendData = (
   
   filteredData.forEach(row => {
     const period = row.period_month;
-    const coverage = parseFloat(row.calidad_features.replace('%', '').replace(',', '.')) || 0;
+    const coverage = parseCoveragePercentage(row.calidad_features);
     
     if (!periodData[period]) {
       periodData[period] = { sum: 0, count: 0 };

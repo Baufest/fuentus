@@ -354,13 +354,17 @@ export interface CoverageData {
   vertical: string;
 }
 
+export const parseCoveragePercentage = (value: string): number => {
+  return parseFloat(value.replace(/%/g, '').replace(',', '.')) || 0;
+};
+
 // Función para transformar datos del dashboard a datos de cobertura
 export const transformToCoverageData = (data: DashboardDataRow[]): CoverageData[] => {
   return data.map(row => ({
     serviceName: row.servicel1_name,
     serviceId: row.servicel1_id,
     uol2Name: row.uol2_name,
-    coverage: parseFloat(row.calidad_features.replace('%', '').replace(',', '.')) || 0,
+    coverage: parseCoveragePercentage(row.calidad_features),
     qualityFeatures: row.calidad_features,
     rfoStatus: row.fichas_rfo_status_ok,
     dependencies: row.sn2_dependencias_asignadas,
@@ -490,7 +494,7 @@ export const getCoverageByUOL2 = (data: DashboardDataRow[]): { [uol2: string]: n
   
   data.forEach(row => {
     const uol2 = row.uol2_name;
-    const coverage = parseFloat(row.calidad_features.replace('%', '').replace(',', '.')) || 0;
+    const coverage = parseCoveragePercentage(row.calidad_features);
     
     if (!uol2Coverage[uol2]) {
       uol2Coverage[uol2] = { sum: 0, count: 0 };
@@ -520,7 +524,7 @@ export const getCoverageTrend = (data: DashboardDataRow[], uol2Name?: string): {
   
   filteredData.forEach(row => {
     const period = row.period_month;
-    const coverage = parseFloat(row.calidad_features.replace('%', '').replace(',', '.')) || 0;
+    const coverage = parseCoveragePercentage(row.calidad_features);
     
     if (!periodCoverage[period]) {
       periodCoverage[period] = { sum: 0, count: 0 };
@@ -537,4 +541,3 @@ export const getCoverageTrend = (data: DashboardDataRow[], uol2Name?: string): {
   
   return result;
 };
-

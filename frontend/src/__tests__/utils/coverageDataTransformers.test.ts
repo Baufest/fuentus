@@ -222,6 +222,16 @@ describe('coverageDataTransformers', () => {
       
       expect(result.series[0].name).toContain('UOL2-Banking');
     });
+
+    test('should remove all percentage symbols before calculating trend data', () => {
+      const result = getCoverageTrendData([
+        { ...mockDashboardData[0], period_month: '2024-01', calidad_features: '85.5%%' },
+        { ...mockDashboardData[2], period_month: '2024-01', calidad_features: '45.5%%' }
+      ], 'UOL2-Banking');
+
+      expect(result.categories).toEqual(['2024-01']);
+      expect(result.series[0].data).toEqual([65.5]);
+    });
   });
 
   describe('getLowCoverageServices', () => {

@@ -452,6 +452,18 @@ incomplete line`;
         expect(result[1].coverage).toBe(90.25);
       });
 
+      it('should remove all percentage symbols before parsing coverage', () => {
+        const testData: DashboardDataRow[] = [
+          {
+            ...mockData[0],
+            calidad_features: '85,50%%'
+          }
+        ];
+
+        const result = transformToCoverageData(testData);
+        expect(result[0].coverage).toBe(85.5);
+      });
+
       it('should handle invalid percentage values', () => {
         const testData: DashboardDataRow[] = [
           {
@@ -571,6 +583,16 @@ incomplete line`;
         expect(result['ADQUIRENCIA']).toBe(85); // (80 + 90) / 2
       });
 
+      it('should remove all percentage symbols when averaging by UOL2', () => {
+        const testData: DashboardDataRow[] = [
+          { ...mockData[0], calidad_features: '80,00%%' },
+          { ...mockData[0], calidad_features: '90,00%%' }
+        ];
+
+        const result = getCoverageByUOL2(testData);
+        expect(result['ADQUIRENCIA']).toBe(85);
+      });
+
       it('should handle empty data', () => {
         const result = getCoverageByUOL2([]);
         expect(result).toEqual({});
@@ -618,6 +640,16 @@ incomplete line`;
         const result = getCoverageTrend(testData, 'ADQUIRENCIA');
         expect(result['jan 25']).toBe(75); // (80 + 70) / 2
         expect(result['feb 25']).toBe(90);
+      });
+
+      it('should remove all percentage symbols when calculating coverage trend', () => {
+        const testData: DashboardDataRow[] = [
+          { ...mockData[0], period_month: 'jan 25', calidad_features: '80,00%%' },
+          { ...mockData[0], period_month: 'jan 25', calidad_features: '90,00%%' }
+        ];
+
+        const result = getCoverageTrend(testData, 'ADQUIRENCIA');
+        expect(result['jan 25']).toBe(85);
       });
     });
   });
