@@ -223,7 +223,7 @@ export const getCoverageTrendData = (
   
   filteredData.forEach(row => {
     const period = row.period_month;
-    const coverage = parseFloat(row.calidad_features.replace('%', '').replace(',', '.')) || 0;
+    const coverage = parseFloat(row.calidad_features.replace(/%/g, '').replace(/,/g, '.')) || 0;
     
     if (!periodData[period]) {
       periodData[period] = { sum: 0, count: 0 };
