@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    
+    <!-- Properties para definir patrones y rutas -->
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="LOG_PATTERN_DETAILED">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} [%M:%L] - %msg%n</Property>
+        <Property name="LOG_DIR">logs</Property>
+        <Property name="APP_NAME">fuentus</Property>
+    </Properties>
+    
+    <!-- Appenders - Definición de donde escribir los logs -->
+    <Appenders>
+        <!-- Console Appender para desarrollo -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+        
+        <!-- Console Appender para DEBUG -->
+        <Console name="ConsoleDebug" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+        
+        <!-- File Appender para logs generales -->
+        <RollingFile name="RollingFile" fileName="${LOG_DIR}/${APP_NAME}.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+        
+        <!-- File Appender para logs de error -->
+        <RollingFile name="ErrorFile" fileName="${LOG_DIR}/${APP_NAME}-error.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+        
+        <!-- File Appender para logs de debug -->
+        <RollingFile name="DebugFile" fileName="${LOG_DIR}/${APP_NAME}-debug.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-debug-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN_DETAILED}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+        
+        <!-- File Appender para logs de audit/transacciones -->
+        <RollingFile name="AuditFile" fileName="${LOG_DIR}/${APP_NAME}-audit.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-audit-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+        
+        <!-- File Appender para logs de performance -->
+        <RollingFile name="PerformanceFile" fileName="${LOG_DIR}/${APP_NAME}-performance.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-performance-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    
+    <!-- Loggers - Configuración de niveles por paquete -->
+    <Loggers>
+        <!-- Logger específico para la aplicación Fuentus -->
+        <Logger name="ar.com.bbva.fuentus" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Logger para controladores -->
+        <Logger name="ar.com.bbva.fuentus.controllers" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="AuditFile"/>
+        </Logger>
+        
+        <!-- Logger para servicios -->
+        <Logger name="ar.com.bbva.fuentus.services" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Logger para repositorios y JPA -->
+        <Logger name="ar.com.bbva.fuentus.repositories" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <!-- Logger para processors (lógica de negocio) -->
+        <Logger name="ar.com.bbva.fuentus.processors" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="PerformanceFile"/>
+        </Logger>
+        
+        <!-- Loggers para frameworks -->
+        <Logger name="org.springframework" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <Logger name="org.springframework.web" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <Logger name="org.springframework.security" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <!-- Logger para Hibernate/JPA -->
+        <Logger name="org.hibernate" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <Logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <AppenderRef ref="DebugFile"/>
+        </Logger>
+        
+        <Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+            <AppenderRef ref="DebugFile"/>
+        </Logger>
+        
+        <!-- Logger para MySQL/JDBC -->
+        <Logger name="com.mysql" level="INFO" additivity="false">
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <!-- Logger para Apache Commons -->
+        <Logger name="org.apache.commons" level="WARN" additivity="false">
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <!-- Logger para OpenCSV -->
+        <Logger name="com.opencsv" level="INFO" additivity="false">
+            <AppenderRef ref="RollingFile"/>
+        </Logger>
+        
+        <!-- Suprimir logs molestos -->
+        <Logger name="javax.naming" level="FATAL" additivity="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <Logger name="org.springframework.jndi" level="FATAL" additivity="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Root logger -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

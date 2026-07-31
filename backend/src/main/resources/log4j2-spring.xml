@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    
+    <!-- Properties específicas para Spring Boot -->
+    <Properties>
+        <Property name="LOG_PATTERN">%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n%xwEx</Property>
+        <Property name="CONSOLE_LOG_PATTERN">%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n%wEx</Property>
+        <Property name="FILE_LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="LOG_DIR">${sys:logging.file.path:-logs}</Property>
+        <Property name="APP_NAME">fuentus</Property>
+    </Properties>
+    
+    <!-- Appenders -->
+    <Appenders>
+        <!-- Console con colores para desarrollo -->
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN:-${CONSOLE_LOG_PATTERN}}"/>
+        </Console>
+        
+        <!-- File Appender principal -->
+        <RollingFile name="File" fileName="${LOG_DIR}/${APP_NAME}.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="${FILE_LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        
+        <!-- Async Appender para mejor performance -->
+        <AsyncRoot>
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </AsyncRoot>
+    </Appenders>
+    
+    <!-- Loggers -->
+    <Loggers>
+        <!-- Spring Boot específicos -->
+        <Logger name="org.springframework.boot" level="INFO"/>
+        <Logger name="org.springframework.boot.autoconfigure" level="INFO"/>
+        <Logger name="org.springframework.boot.actuate" level="INFO"/>
+        
+        <!-- Aplicación principal -->
+        <Logger name="ar.com.bbva.fuentus" level="INFO"/>
+        
+        <!-- Web y MVC -->
+        <Logger name="org.springframework.web" level="INFO"/>
+        <Logger name="org.springframework.web.servlet.DispatcherServlet" level="INFO"/>
+        
+        <!-- JPA y Database -->
+        <Logger name="org.springframework.orm.jpa" level="INFO"/>
+        <Logger name="org.springframework.transaction" level="INFO"/>
+        <Logger name="org.hibernate.engine.jdbc.env.internal.LobCreatorBuilderImpl" level="WARN"/>
+        
+        <!-- Root logger -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+</Configuration>

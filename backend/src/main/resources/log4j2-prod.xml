@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="60">
+    
+    <!-- Properties para producción -->
+    <Properties>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="LOG_PATTERN_JSON">{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSSSS}","level":"%-5level","thread":"%t","logger":"%logger{36}","message":"%msg","exception":"%xEx{short}"}%n</Property>
+        <Property name="LOG_DIR">/var/log/fuentus</Property>
+        <Property name="APP_NAME">fuentus</Property>
+    </Properties>
+    
+    <!-- Appenders para producción -->
+    <Appenders>
+        <!-- Console mínimo para producción (solo errores críticos) -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+        
+        <!-- Archivo principal de aplicación -->
+        <RollingFile name="AppFile" fileName="${LOG_DIR}/${APP_NAME}-app.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-app-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+        
+        <!-- Archivo de errores críticos -->
+        <RollingFile name="ErrorFile" fileName="${LOG_DIR}/${APP_NAME}-error.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="60"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+        
+        <!-- Archivo de auditoría para transacciones críticas -->
+        <RollingFile name="AuditFile" fileName="${LOG_DIR}/${APP_NAME}-audit.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-audit-%d{yyyy-MM-dd}-%i.log.gz">
+            <JsonTemplateLayout eventTemplateUri="classpath:JsonLayout.json"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="90"/>
+        </RollingFile>
+        
+        <!-- Archivo de performance para monitoreo -->
+        <RollingFile name="PerformanceFile" fileName="${LOG_DIR}/${APP_NAME}-performance.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-performance-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} [%M:%L] - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+        
+        <!-- Archivo para métricas y estadísticas -->
+        <RollingFile name="MetricsFile" fileName="${LOG_DIR}/${APP_NAME}-metrics.log"
+                     filePattern="${LOG_DIR}/${APP_NAME}-metrics-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN_JSON}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="30MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+        
+        <!-- Async wrapper para mejor performance en producción -->
+        <AsyncRoot includeLocation="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </AsyncRoot>
+    </Appenders>
+    
+    <!-- Loggers para producción -->
+    <Loggers>
+        <!-- Aplicación principal - nivel INFO en producción -->
+        <Logger name="ar.com.bbva.fuentus" level="INFO" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Controladores - logs de auditoría -->
+        <Logger name="ar.com.bbva.fuentus.controllers" level="INFO" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="AuditFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Servicios - logs de negocio -->
+        <Logger name="ar.com.bbva.fuentus.services" level="INFO" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+            <AppenderRef ref="MetricsFile"/>
+        </Logger>
+        
+        <!-- Processors - logs de performance -->
+        <Logger name="ar.com.bbva.fuentus.processors" level="INFO" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="PerformanceFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Repositorios y acceso a datos -->
+        <Logger name="ar.com.bbva.fuentus.repositories" level="WARN" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Import/Export de datos -->
+        <Logger name="ar.com.bbva.fuentus.services.DataImportService" level="INFO" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="AuditFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Spring Framework - nivel WARN en producción -->
+        <Logger name="org.springframework" level="WARN" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Hibernate - solo errores en producción -->
+        <Logger name="org.hibernate" level="ERROR" additivity="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- MySQL/JDBC - solo errores -->
+        <Logger name="com.mysql" level="ERROR" additivity="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Tomcat - nivel WARN -->
+        <Logger name="org.apache.catalina" level="WARN" additivity="false">
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- OpenCSV - solo errores -->
+        <Logger name="com.opencsv" level="ERROR" additivity="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Suprimir logs innecesarios -->
+        <Logger name="javax.naming" level="OFF" additivity="false"/>
+        <Logger name="org.springframework.jndi" level="OFF" additivity="false"/>
+        <Logger name="org.hibernate.engine.jdbc.env.internal.LobCreatorBuilderImpl" level="ERROR" additivity="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+        
+        <!-- Root logger - nivel WARN en producción -->
+        <Root level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AppFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

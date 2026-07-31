@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>frontend</artifactId>
+    <packaging>pom</packaging>
+    <name>frontend</name>
+    <description>Frontend de Fuentus</description>
+    <groupId>ar.com.bbva.fuentus</groupId>
+    <version>0.0.1</version>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <curl.urlnpm>
+            https://artifactory.globaldevtools.bbva.com:443/artifactory/ar-afue-fuentus-npm-virtual/npm/-/npm-10.9.0.tgz </curl.urlnpm>
+        <curl.urlnode>
+            https://artifactory.globaldevtools.bbva.com:443/artifactory/ar-afue-fuentus-maven-dev-local/nodejs/v22.1.0/node-v22.1.0-linux-x64-musl.tar.gz</curl.urlnode>
+    </properties>
+    <build>
+        <plugins>
+            <!-- delete dist folder -->
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>dist</directory>
+                            <includes>
+                                <include>**</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>node_modules/</directory>
+                            <includes>
+                                <include>**</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>node/</directory>
+                            <includes>
+                                <include>**</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>evaluate-username</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>evaluate</goal>
+                        </goals>
+                        <configuration>
+                            <expression>settings.servers[0].username</expression>
+                            <output>${basedir}/evaluated-username.properties</output>
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>evaluate-password</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>evaluate</goal>
+                        </goals>
+                        <configuration>
+                            <expression>settings.servers[0].password</expression>
+                            <output>${basedir}/evaluated-password.properties</output>
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <version>3.0.19</version>
+                        <classifier>sources</classifier>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>prepend-username</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+
+                                <echo file="${basedir}/temp-username.properties">
+                                    username=</echo>
+
+                                <loadfile property="fileContent"
+                                    srcFile="${basedir}/evaluated-username.properties" />
+                                <echo file="${basedir}/temp-username.properties"
+                                    append="true">${fileContent}</echo>
+
+                                <move file="${basedir}/temp-username.properties"
+                                    tofile="${basedir}/evaluated-username.properties" />
+
+                            </target>
+                        </configuration>
+                    </execution>
+
+
+                    <execution>
+                        <id>prepend-pass</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+
+                                <echo file="${basedir}/temp-password.properties">
+                                    password=</echo>
+
+                                <loadfile property="fileContent"
+                                    srcFile="${basedir}/evaluated-password.properties" />
+                                <echo file="${basedir}/temp-password.properties"
+                                    append="true">${fileContent}</echo>
+
+                                <move file="${basedir}/temp-password.properties"
+                                    tofile="${basedir}/evaluated-password.properties" />
+                            </target>
+                        </configuration>
+                    </execution>
+
+
+                    <execution>
+                        <id>download-node</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <property
+                                    file="${project.basedir}/evaluated-password.properties" />
+                                <property
+                                    file="${project.basedir}/evaluated-username.properties" />
+
+                                <property name="curl.username" value="${username}" />
+                                <property name="curl.password" value="${password}" />
+                                <exec executable="curl">
+                                    <arg value="-o" />
+                                    <arg
+                                        value="${project.basedir}/.m2/com/github/eirslett/node/22.1.0/node-v22.1.0-linux-x64-musl.tar.gz" />
+                                    <arg value="--create-dirs" />
+                                    <arg value="-u" />
+                                    <arg
+                                        value="${curl.username}:${curl.password}" />
+                                    <arg value="${curl.urlnode}" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>download-npm</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <property
+                                    file="${project.basedir}/evaluated-password.properties" />
+                                <property
+                                    file="${project.basedir}/evaluated-username.properties" />
+
+                                <property name="curl.username" value="${username}" />
+                                <property name="curl.password" value="${password}" />
+                                <exec executable="curl">
+                                    <arg value="-o" />
+                                    <arg
+                                        value="${project.basedir}/.m2/com/github/eirslett/npm/10.9.0/npm-10.9.0.tar.gz" />
+                                    <arg value="--create-dirs" />
+                                    <arg value="-u" />
+                                    <arg value="${curl.username}:${curl.password}" />
+                                    <arg value="${curl.urlnpm}" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>carpatas-node</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <exec executable="mkdir">
+                                    <arg value="-p" />
+                                    <arg value="${project.basedir}/node/node_modules/npm/" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>descomprimo-node</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <exec executable="tar">
+                                    <arg value="-xzf" />
+                                    <arg
+                                        value="${project.basedir}/.m2/com/github/eirslett/node/22.1.0/node-v22.1.0-linux-x64-musl.tar.gz" />
+                                    <!--<arg
+                                    value="/home/RECONQUISTA/a129579/.m2/repository/com/github/eirslett/node/v10.16.0/node-v10.16.0-linux-x64.tar.gz"
+                                    /-->
+                                    <arg value="--strip-components=2" />
+                                    <arg value="-C" />
+                                    <arg value="${project.basedir}/node/" />
+                                    <arg value="node-v22.1.0-linux-x64-musl/bin/node" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>descomprimo-npm</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+
+                                <exec executable="tar">
+                                    <arg value="-xzf" />
+                                    <arg
+                                        value="${project.basedir}/.m2/com/github/eirslett/npm/10.9.0/npm-10.9.0.tar.gz" />
+                                    <!--<arg
+                                    value="/home/RECONQUISTA/a129579/.m2/repository/com/github/eirslett/npm/6.14.14/npm-6.14.14.tar.gz"
+                                    />-->
+                                    <arg value="--strip-components=1" />
+                                    <arg value="-C" />
+                                    <arg value="${project.basedir}/node/node_modules/npm" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- <execution>
+                        <id>generar-npmrc</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property file="${basedir}/evaluated-username.properties" />
+                                <property file="${basedir}/evaluated-password.properties" />
+
+                                <property name="token" value="${password}" />
+                                <property name="user" value="${username}" />
+                                <script language="groovy"><![CDATA[
+          import java.util.Base64
+          String auth = project.getProperty("user") + ":"+ project.getProperty("token")
+          String encoded = Base64.encoder.encodeToString(auth.getBytes("UTF-8"))
+          project.setProperty("auth_b64", encoded)
+      ]]></script>
+
+
+                                <echo file="${project.basedir}/.npmrc" append="false">
+                                    registry=https://artifactory.globaldevtools.bbva.com/artifactory/api/npm/ar-afue-fuentus-npm-virtual
+                                    //artifactory.globaldevtools.bbva.com/artifactory/api/npm/ar-afue-fuentus-npm-virtual/:_auth=${auth_b64}
+                                    email=devops-argentina-soporte.group@bbva.com
+                                    always-auth=true
+                                </echo>
+
+
+                            </target>
+                        </configuration>
+                    </execution> -->
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.1</version>
+                <executions>
+                    <!-- install node and npm -->
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v22.1.0</nodeVersion>
+                            <npmVersion>10.9.0</npmVersion>
+                        </configuration>
+                    </execution>
+                    <!-- install project dependencies -->
+
+                    <!-- install project dependencies -->
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>npm test</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run test:ci-fast</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>React build...</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

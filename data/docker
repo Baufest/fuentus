@@ -1,0 +1,19 @@
+#primera vez
+docker run -d -p 3306:3306 \
+    --name scrapper-db \
+    -e MARIADB_ROOT_PASSWORD=password \
+    -e MARIADB_DATABASE=scrapper \
+    -v /home/RECONQUISTA/t021799/Documentos/data-scrapper/persistence:/var/lib/mysql:Z \
+    mariadb:10.4-focal
+
+#posteriores
+docker start scrapper-db
+
+#dump
+docker exec -i scrapper-db mysqldump -uroot -ppassword --databases scrapper --skip-comments > "$(date +"%Y-%m-%d_%H%M%S")_scrapper.sql"
+
+# Comando para sobreescribir el archivo de dump.
+docker exec -i scrapper-db mysqldump -uroot -ppassword --databases scrapper --skip-comments > "dump_fuentus.sql"
+
+#Comando para cargar el dump
+docker exec -i scrapper-db mysql -uroot -ppassword scrapper --skip-comments < dump_fuentus.sql
