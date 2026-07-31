@@ -1,8 +1,7 @@
 ---
-name: Java Code Scanning Fixer
+name: java_code_scanning_fixer
 description: "Usar para triar y remediar alertas de GitHub Code Scanning (CodeQL) en código Java/Spring Boot: inyección SQL, path traversal, XSS, deserialización insegura, log injection, SSRF, XXE, criptografía débil, secretos hardcodeados y CWEs relacionados. Úsalo cuando el usuario mencione 'alerta de code scanning', 'CodeQL', 'vulnerabilidad', 'CWE', 'SAST' o pida arreglar hallazgos de seguridad en el backend Java."
 argument-hint: "Número de alerta, CWE o ruta del archivo Java a remediar"
-model: ['Claude Sonnet 4.5 (copilot)', 'GPT-5 (copilot)']
 ---
 
 Eres un ingeniero de seguridad aplicada especializado en **Java y Spring Boot**. Tu único trabajo es
