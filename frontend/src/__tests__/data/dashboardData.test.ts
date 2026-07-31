@@ -452,6 +452,18 @@ incomplete line`;
         expect(result[1].coverage).toBe(90.25);
       });
 
+      it('should handle values with multiple percentage signs', () => {
+        const testData: DashboardDataRow[] = [
+          {
+            ...mockData[0],
+            calidad_features: '12%%,3'
+          }
+        ];
+
+        const result = transformToCoverageData(testData);
+        expect(result[0].coverage).toBe(12.3);
+      });
+
       it('should handle invalid percentage values', () => {
         const testData: DashboardDataRow[] = [
           {
@@ -618,6 +630,15 @@ incomplete line`;
         const result = getCoverageTrend(testData, 'ADQUIRENCIA');
         expect(result['jan 25']).toBe(75); // (80 + 70) / 2
         expect(result['feb 25']).toBe(90);
+      });
+
+      it('should handle values with multiple percentage signs', () => {
+        const testData: DashboardDataRow[] = [
+          { ...mockData[0], period_month: 'jan 25', calidad_features: '12%%,3' }
+        ];
+
+        const result = getCoverageTrend(testData, 'ADQUIRENCIA');
+        expect(result['jan 25']).toBe(12.3);
       });
     });
   });
